@@ -16,6 +16,7 @@ public class CsvReader {
     private final Path pathToCsvFile;
     private BufferedReader reader;
     private List<String> header = null;
+    private String currentLine = "";
 
     private CsvReader(Path pathToCsvFile, boolean hasHeader, int skipLines, String delimiter) throws IOException {
         this.hasHeader = hasHeader;
@@ -89,21 +90,25 @@ public class CsvReader {
 
     }
 
-    private class CsvResult{
-        private CsvResult() {
-        }
-        public HashMap<String, String> getResult(){
-            LinkedHashMap map = new LinkedHashMap();
+
+    public Optional<CsvResult> readNextLine() throws IOException {
+        tryReadNexLine();
+        if (!isEndReached()){
+            List<String> currentValues = Arrays.asList(currentLine.split(delimiter));
+            return hasHeader ? Optional.of(new CsvResultMapBased(header, currentValues)) : Optional.of(new CsvResultListBased(currentValues));
+        } else {
+            return Optional.empty();
         }
     }
 
+    private boolean isEndReached(){
+        return currentLine == null;
+    }
 
-
-    public CsvResult readNextLine() throws IOException {
-        if (hasHeader){
-
+    private void tryReadNexLine() throws IOException {
+        if (!isEndReached()) {
+            currentLine = reader.readLine();
         }
-        return new CsvResult();
     }
 
 }
